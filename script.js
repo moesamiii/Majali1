@@ -26,10 +26,10 @@ function handleFileUpload(event) {
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
       employees = XLSX.utils.sheet_to_json(firstSheet);
 
-      console.log("Sample employee data:", employees[0]); // Debug
-      console.log("Available columns:", Object.keys(employees[0])); // Debug
+      console.log("Sample employee data:", employees[0]);
+      console.log("Available columns:", Object.keys(employees[0]));
 
-      // Filter valid employees - check for Name column
+      // Filter valid employees
       validEmployees = employees.filter((emp) => {
         const hasName =
           emp["Name"] &&
@@ -48,7 +48,6 @@ function handleFileUpload(event) {
       displayEmployee(currentIndex);
       showStatus(`✅ تم تحميل ${validEmployees.length} موظف بنجاح`, "success");
 
-      // Show navigation and actions
       document.getElementById("navigationSection").style.display = "flex";
       document.getElementById("actionSection").style.display = "flex";
       updateNavigation();
@@ -72,12 +71,35 @@ function displayEmployee(index) {
   updateNavigation();
 }
 
+// Get today's date in DD/MM/YYYY format
+function getTodayDate() {
+  const today = new Date();
+  const day = String(today.getDate()).padStart(2, "0");
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const year = today.getFullYear();
+  return `${day}/${month}/${year}`;
+}
+
+// Split amount into Dinar and Fils
+function splitAmount(amount) {
+  if (!amount || amount === "-" || amount === "" || isNaN(amount)) {
+    return { dinar: "-", fils: "-" };
+  }
+
+  const numAmount = parseFloat(amount);
+  const dinar = Math.floor(numAmount);
+  const fils = Math.round((numAmount - dinar) * 1000);
+
+  return {
+    dinar: dinar.toString(),
+    fils: fils > 0 ? fils.toString() : "-",
+  };
+}
+
 // Generate Exact Government Form
 function generateGovernmentForm(employee) {
-  // Extract data from Excel columns
   const arabicNames = extractArabicNames(employee);
 
-  // Get National ID from the correct column
   const nationalId =
     employee["الرقم الوطني/ جواز السفر"] ||
     employee["ID"] ||
@@ -86,46 +108,59 @@ function generateGovernmentForm(employee) {
 
   const taxYear = "2025";
 
+  // Get work duration from Count column
   let workDuration = "-";
-
-  for (let key in employee) {
-    if (key.replace(/\s+/g, "").includes("مدةالعمل")) {
-      const value = employee[key];
-
-      if (
-        value !== undefined &&
-        value !== null &&
-        String(value).trim() !== ""
-      ) {
-        workDuration = String(value).trim();
-      } else {
-        workDuration = "-";
-      }
-
-      break;
+  if (
+    employee["Count"] !== undefined &&
+    employee["Count"] !== null &&
+    employee["Count"] !== ""
+  ) {
+    const countValue = String(employee["Count"]).trim();
+    if (countValue !== "" && countValue !== "-") {
+      workDuration = countValue + " شهر";
     }
   }
 
+  // Get END work date
   let endWorkDate = "-";
+  const endDateColumn = "تاريخ انتهاء العمل (انهاء الخدمة)";
 
-  for (let key in employee) {
-    const cleanKey = key.replace(/[^\u0600-\u06FF]/g, "");
+  if (
+    employee[endDateColumn] !== undefined &&
+    employee[endDateColumn] !== null
+  ) {
+    const value = employee[endDateColumn];
 
-    if (cleanKey.includes("تاريخانتهاءالعمل")) {
-      const value = employee[key];
-
-      if (value && String(value).trim() !== "") {
-        if (typeof value === "number") {
-          const date = new Date((value - 25569) * 86400 * 1000);
-          endWorkDate = date.toLocaleDateString("en-GB");
-        } else {
-          endWorkDate = String(value).trim();
-        }
+    if (String(value).trim() !== "" && String(value).trim() !== "-") {
+      if (typeof value === "number" && value > 0) {
+        const date = new Date((value - 25569) * 86400 * 1000);
+        const day = String(date.getDate()).padStart(2, "0");
+        const month = String(date.getMonth() + 1).padStart(2, "0");
+        const year = date.getFullYear();
+        endWorkDate = `${day}/${month}/${year}`;
+      } else if (typeof value === "string") {
+        endWorkDate = value.trim();
       }
-      break;
     }
   }
-  // ب
+
+  // Get salary (Column E) and tax (Column F)
+  const salaryColumn = "الراتب والاجور";
+  const taxColumn = "الضريبة المقتطعة من اجمالي";
+
+  const salaryAmount = employee[salaryColumn] || 0;
+  const taxAmount = employee[taxColumn] || 0;
+
+  console.log("Salary column:", salaryColumn, "Value:", salaryAmount);
+  console.log("Tax column:", taxColumn, "Value:", taxAmount);
+
+  // Split amounts into Dinar and Fils
+  const salary = splitAmount(salaryAmount);
+  const tax = splitAmount(taxAmount);
+
+  // Get today's date
+  const todayDate = getTodayDate();
+
   return `
         <div class="government-form" id="currentForm">
             <!-- Header Section -->
@@ -187,13 +222,11 @@ function generateGovernmentForm(employee) {
                     <th class="label-cell" colspan="2">مدة العمل لغاية الفترة الضريبية</th>
                     <th class="label-cell">تاريخ انتهاء العمل (الإنهاء الفعلي)</th>
                 </tr>
-         <tr>
-  <td class="value-cell">${taxYear}</td>
-  <td class="value-cell" colspan="2">${workDuration}</td>
-  <td class="value-cell">${endWorkDate}</td>
-</tr>
-
-
+                <tr>
+                    <td class="value-cell">${taxYear}</td>
+                    <td class="value-cell" colspan="2">${workDuration}</td>
+                    <td class="value-cell">${endWorkDate}</td>
+                </tr>
             </table>
 
             <!-- Financial Information Table -->
@@ -212,11 +245,11 @@ function generateGovernmentForm(employee) {
                 </tr>
                 <tr>
                     <td class="col-label">الرواتب والأجور</td>
-                    <td class="value-cell">-</td>
-                    <td class="value-cell">-</td>
+                    <td class="value-cell">${salary.dinar}</td>
+                    <td class="value-cell">${salary.fils}</td>
                     <td class="col-label">الرواتب والأجور</td>
-                    <td class="value-cell">-</td>
-                    <td class="value-cell">-</td>
+                    <td class="value-cell">${tax.dinar}</td>
+                    <td class="value-cell">${tax.fils}</td>
                 </tr>
                 <tr>
                     <td class="col-label">الرواتب والأجور غير الشهرية</td>
@@ -252,11 +285,11 @@ function generateGovernmentForm(employee) {
                 </tr>
                 <tr style="background: #f5f5f5;">
                     <td class="col-label"><strong>المجمــــــــوع</strong></td>
-                    <td class="value-cell">-</td>
-                    <td class="value-cell">-</td>
+                    <td class="value-cell">${salary.dinar}</td>
+                    <td class="value-cell">${salary.fils}</td>
                     <td class="col-label"><strong>المجمــــــــوع</strong></td>
-                    <td class="value-cell">-</td>
-                    <td class="value-cell">-</td>
+                    <td class="value-cell">${tax.dinar}</td>
+                    <td class="value-cell">${tax.fils}</td>
                 </tr>
             </table>
 
@@ -269,7 +302,7 @@ function generateGovernmentForm(employee) {
             <table class="company-table">
                 <tr>
                     <td class="company-label-cell">اسم صاحب العمل</td>
-                    <td colspan="2" class="value-cell">شركة ديلوتيم ميدل إيست</td>
+                    <td colspan="2" class="value-cell">شركة ديفوتيم ميدل ايست</td>
                 </tr>
                 <tr>
                     <td class="company-label-cell">الرقم الضريبي</td>
@@ -283,69 +316,40 @@ function generateGovernmentForm(employee) {
                 </tr>
             </table>
 
-            <div class="date-line">التاريخ : 10/1/2026</div>
+            <div class="date-line">التاريخ : ${todayDate}</div>
         </div>
     `;
 }
 
-// Extract Arabic Names from Excel - UPDATED FOR YOUR COLUMNS
+// Extract Arabic Names from Excel
 function extractArabicNames(employee) {
-  console.log("Processing employee:", employee); // Debug
-
-  // Based on your Excel screenshot, the Arabic columns are:
-  // Column M: الاسم (First Name)
-  // Column N: الأب (Father)
-  // Column O: الجد (Grandfather)
-  // Column P: العائلة (Family Name)
-
-  // Try to find the Arabic name columns by their header names
   let firstName = "";
   let fatherName = "";
   let grandFatherName = "";
   let familyName = "";
 
-  // Check all possible column name variations
   for (let key in employee) {
     const lowerKey = key.toLowerCase();
 
-    // First name variations
     if (lowerKey.includes("الاسم") && !lowerKey.includes("الرباعي")) {
       firstName = employee[key] || "";
-    }
-    // Father name variations
-    else if (lowerKey.includes("الأب") || lowerKey.includes("اب")) {
+    } else if (lowerKey.includes("الأب") || lowerKey.includes("اب")) {
       fatherName = employee[key] || "";
-    }
-    // Grandfather variations
-    else if (lowerKey.includes("الجد") || lowerKey.includes("جد")) {
+    } else if (lowerKey.includes("الجد") || lowerKey.includes("جد")) {
       grandFatherName = employee[key] || "";
-    }
-    // Family name variations
-    else if (lowerKey.includes("العائله") || lowerKey.includes("عائلة")) {
+    } else if (lowerKey.includes("العائله") || lowerKey.includes("عائلة")) {
       familyName = employee[key] || "";
     }
   }
 
-  // If we couldn't find the Arabic columns, try to extract from the English Name column
   if (!firstName && employee["Name"]) {
-    console.log("Falling back to parsing Name column");
     const fullName = employee["Name"].trim();
     const parts = fullName.split(/\s+/);
-
-    // For names like "Abdallah Sami Abdallah Toughoz"
-    // Map to Arabic if available in other fields, otherwise use English
     firstName = parts[0] || "";
     fatherName = parts[1] || "";
     grandFatherName = parts[2] || "";
     familyName = parts.slice(3).join(" ") || "";
   }
-
-  console.log("Extracted names:", {
-    firstName,
-    fatherName,
-    grandFatherName,
-    familyName,
-  }); // Debug
 
   return {
     firstName: firstName.trim(),
@@ -419,7 +423,7 @@ async function downloadCurrentPDF() {
   }
 }
 
-// Download All PDFs - Enhanced
+// Download All PDFs
 async function downloadAllPDFs() {
   if (validEmployees.length === 0) {
     alert("لا يوجد موظفين");
@@ -449,12 +453,10 @@ async function downloadAllPDFs() {
     let firstPage = true;
 
     for (let i = 0; i < validEmployees.length; i++) {
-      // Update progress
       const progress = Math.round(((i + 1) / validEmployees.length) * 100);
       progressFill.style.width = progress + "%";
       progressText.textContent = `${i + 1} من ${validEmployees.length}`;
 
-      // Create temporary form
       const tempDiv = document.createElement("div");
       tempDiv.innerHTML = generateGovernmentForm(validEmployees[i]);
       tempDiv.style.position = "absolute";
@@ -463,10 +465,8 @@ async function downloadAllPDFs() {
       tempDiv.style.background = "white";
       document.body.appendChild(tempDiv);
 
-      // Wait for images to load
       await waitForImages(tempDiv);
 
-      // Generate canvas
       const canvas = await html2canvas(
         tempDiv.querySelector(".government-form"),
         {
@@ -480,9 +480,8 @@ async function downloadAllPDFs() {
         },
       );
 
-      // Add to PDF
       const imgData = canvas.toDataURL("image/jpeg", 0.95);
-      const imgWidth = 210; // A4 width
+      const imgWidth = 210;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       if (!firstPage) {
@@ -492,14 +491,11 @@ async function downloadAllPDFs() {
 
       pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
 
-      // Cleanup
       document.body.removeChild(tempDiv);
 
-      // Small delay to prevent browser freeze
       await sleep(50);
     }
 
-    // Save PDF
     pdf.save(`employee-tax-forms-all-${validEmployees.length}.pdf`);
 
     modal.classList.remove("active");
