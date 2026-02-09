@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>نظام شهادات الموظفين - Employee Tax Forms</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" type="image/png" href="crown.png" />
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Control Panel -->
+      <div class="control-panel">
+        <div class="upload-section">
+          <h2>📂 تحميل ملف الموظفين</h2>
+          <input
+            type="file"
+            id="excelFile"
+            accept=".xlsx,.xls"
+            class="file-input"
+          />
+          <div id="status" class="status-message"></div>
+        </div>
+
+        <div></div>
+
+        <div
+          class="navigation-section"
+          id="navigationSection"
+          style="display: none"
+        >
+          <button class="nav-btn" onclick="prevEmployee()" id="prevBtn">
+            <span>◀</span> السابق
+          </button>
+          <div class="employee-info">
+            <span id="employeeCounter" class="counter"></span>
+            <span id="employeeName" class="employee-name"></span>
+          </div>
+          <button class="nav-btn" onclick="nextEmployee()" id="nextBtn">
+            التالي <span>▶</span>
+          </button>
+        </div>
+
+        <div class="action-section" id="actionSection" style="display: none">
+          <button class="action-btn btn-print" onclick="window.print()">
+            🖨️ طباعة
+          </button>
+          <button
+            class="action-btn btn-download"
+            onclick="downloadCurrentPDF()"
+          >
+            📄 تحميل PDF
+          </button>
+          <button
+            class="action-btn btn-download-all"
+            onclick="downloadAllPDFs()"
+          >
+            📦 تحميل الكل
+          </button>
+        </div>
+      </div>
+
+      <!-- Form Container -->
+      <div id="formContainer" class="form-container"></div>
+
+      <!-- Progress Modal -->
+      <div id="progressModal" class="modal">
+        <div class="modal-content">
+          <h3>جاري إنشاء ملفات PDF</h3>
+          <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+          </div>
+          <p id="progressText">0 من 0</p>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="script.js"></script>
+  </body>
+</html>
