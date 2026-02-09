@@ -80,7 +80,7 @@ function getTodayDate() {
   return `${day}/${month}/${year}`;
 }
 
-// Split amount into Dinar and Fils
+// Split amount into Dinar and Fils with comma formatting
 function splitAmount(amount) {
   if (!amount || amount === "-" || amount === "" || isNaN(amount)) {
     return { dinar: "-", fils: "-" };
@@ -90,8 +90,11 @@ function splitAmount(amount) {
   const dinar = Math.floor(numAmount);
   const fils = Math.round((numAmount - dinar) * 1000);
 
+  // Format dinar with commas
+  const formattedDinar = dinar.toLocaleString("en-US");
+
   return {
-    dinar: dinar.toString(),
+    dinar: formattedDinar,
     fils: fils > 0 ? fils.toString() : "-",
   };
 }
