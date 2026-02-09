@@ -111,29 +111,17 @@ function generateGovernmentForm(employee) {
   for (let key in employee) {
     const cleanKey = key.replace(/[^\u0600-\u06FF]/g, "");
 
-    if (
-      cleanKey.includes("تاريخانتهاء") ||
-      cleanKey.includes("انهاءالخدمة") ||
-      cleanKey.includes("إنهاءالخدمة") ||
-      cleanKey.includes("تاريخانهاء") ||
-      cleanKey.includes("تاريخانتهاءالعمل")
-    ) {
+    if (cleanKey.includes("تاريخانتهاءالعمل")) {
       const value = employee[key];
 
-      if (
-        value !== undefined &&
-        value !== null &&
-        String(value).trim() !== ""
-      ) {
-        // لو التاريخ رقم (Excel date)
+      if (value && String(value).trim() !== "") {
         if (typeof value === "number") {
           const date = new Date((value - 25569) * 86400 * 1000);
-          endWorkDate = date.toLocaleDateString("en-GB"); // 31/12/2025
+          endWorkDate = date.toLocaleDateString("en-GB");
         } else {
           endWorkDate = String(value).trim();
         }
       }
-
       break;
     }
   }
