@@ -106,6 +106,18 @@ function generateGovernmentForm(employee) {
     }
   }
 
+  let endWorkDate = "-";
+
+  for (let key in employee) {
+    if (
+      key.replace(/\s+/g, "").includes("تاريخانتهاءالعمل") ||
+      key.replace(/\s+/g, "").includes("انهاءالخدمة")
+    ) {
+      endWorkDate = employee[key] || "-";
+      break;
+    }
+  }
+
   return `
         <div class="government-form" id="currentForm">
             <!-- Header Section -->
@@ -167,11 +179,12 @@ function generateGovernmentForm(employee) {
                     <th class="label-cell" colspan="2">مدة العمل لغاية الفترة الضريبية</th>
                     <th class="label-cell">تاريخ انتهاء العمل (الإنهاء الفعلي)</th>
                 </tr>
-                <tr>
-    <td class="value-cell">${taxYear}</td>
-    <td class="value-cell" colspan="2">${workDuration}</td>
-    <td class="value-cell">-</td>
+         <tr>
+  <td class="value-cell">${taxYear}</td>
+  <td class="value-cell" colspan="2">${workDuration}</td>
+  <td class="value-cell">${endWorkDate}</td>
 </tr>
+
 
             </table>
 
