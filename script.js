@@ -72,37 +72,6 @@ function displayEmployee(index) {
   updateNavigation();
 }
 
-function calculateWorkDuration(startDateValue, taxYear) {
-  if (!startDateValue) return "-";
-
-  let startDate;
-
-  // 🟢 Excel numeric date (مثل 45231)
-  if (typeof startDateValue === "number") {
-    startDate = new Date((startDateValue - 25569) * 86400 * 1000);
-  }
-  // 🟢 String date
-  else {
-    startDate = new Date(startDateValue);
-  }
-
-  if (isNaN(startDate)) return "-";
-
-  const endDate = new Date(`${taxYear}-12-31`);
-
-  let years = endDate.getFullYear() - startDate.getFullYear();
-  let months = endDate.getMonth() - startDate.getMonth();
-
-  if (months < 0) {
-    years--;
-    months += 12;
-  }
-
-  if (years < 0) return "-";
-
-  return `${years} سنة و ${months} شهر`;
-}
-
 // Generate Exact Government Form
 function generateGovernmentForm(employee) {
   // Extract data from Excel columns
@@ -117,14 +86,25 @@ function generateGovernmentForm(employee) {
 
   const taxYear = "2025";
 
-  // 👇 غيّر اسم العمود حسب Excel عندك
-  const startWorkDate =
-    employee["تاريخ بدء العمل"] ||
-    employee["Start Date"] ||
-    employee["Hire Date"] ||
-    "";
+  let workDuration = "-";
 
-  const workDuration = calculateWorkDuration(startWorkDate, taxYear);
+  for (let key in employee) {
+    if (key.replace(/\s+/g, "").includes("مدةالعمل")) {
+      const value = employee[key];
+
+      if (
+        value !== undefined &&
+        value !== null &&
+        String(value).trim() !== ""
+      ) {
+        workDuration = String(value).trim();
+      } else {
+        workDuration = "-";
+      }
+
+      break;
+    }
+  }
 
   return `
         <div class="government-form" id="currentForm">
