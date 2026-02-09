@@ -249,10 +249,12 @@ function generateGovernmentForm(employee) {
                     <th colspan="2">القيمة</th>
                 </tr>
                 <tr>
-                    <th>دينار</th>
+                    
                     <th>فلس</th>
                     <th>دينار</th>
+                    
                     <th>فلس</th>
+                    <th>دينار</th>
                 </tr>
                 <tr>
                     <td class="col-label">الرواتب والأجور</td>
