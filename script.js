@@ -72,6 +72,27 @@ function displayEmployee(index) {
   updateNavigation();
 }
 
+function calculateWorkDuration(startDateStr, taxYear) {
+  if (!startDateStr) return "-";
+
+  const startDate = new Date(startDateStr);
+  if (isNaN(startDate)) return "-";
+
+  const endDate = new Date(`${taxYear}-12-31`);
+
+  let years = endDate.getFullYear() - startDate.getFullYear();
+  let months = endDate.getMonth() - startDate.getMonth();
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  if (years < 0) return "-";
+
+  return `${years} سنة و ${months} شهر`;
+}
+
 // Generate Exact Government Form
 function generateGovernmentForm(employee) {
   // Extract data from Excel columns
@@ -85,6 +106,15 @@ function generateGovernmentForm(employee) {
     "";
 
   const taxYear = "2025";
+
+  // 👇 غيّر اسم العمود حسب Excel عندك
+  const startWorkDate =
+    employee["تاريخ بدء العمل"] ||
+    employee["Start Date"] ||
+    employee["Hire Date"] ||
+    "";
+
+  const workDuration = calculateWorkDuration(startWorkDate, taxYear);
 
   return `
         <div class="government-form" id="currentForm">
@@ -148,10 +178,11 @@ function generateGovernmentForm(employee) {
                     <th class="label-cell">تاريخ انتهاء العمل (الإنهاء الفعلي)</th>
                 </tr>
                 <tr>
-                    <td class="value-cell">${taxYear}</td>
-                    <td class="value-cell" colspan="2"></td>
-                    <td class="value-cell">-</td>
-                </tr>
+    <td class="value-cell">${taxYear}</td>
+    <td class="value-cell" colspan="2">${workDuration}</td>
+    <td class="value-cell">-</td>
+</tr>
+
             </table>
 
             <!-- Financial Information Table -->
