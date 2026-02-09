@@ -146,11 +146,21 @@ function generateGovernmentForm(employee) {
 
   // Get salary (Column E) and tax (Column F)
 
-  const salaryColumn = "اجمالي الرواتب والأجور";
-  const taxColumn = "الضريبة المقتطعة من اجمالي";
+  // Get salary (Column E) and tax (Column F)
+  const salaryColumn =
+    Object.keys(employee).find(
+      (key) => key.includes("اجمالي الرواتب") || key.includes("إجمالي الرواتب"),
+    ) || "اجمالي الرواتب والأجور";
+
+  const taxColumn =
+    Object.keys(employee).find((key) => key.includes("الضريبة المقتطعة")) ||
+    "الضريبة المقتطعة من اجمالي";
 
   const salaryAmount = employee[salaryColumn] || 0;
   const taxAmount = employee[taxColumn] || 0;
+
+  console.log("Salary column:", salaryColumn, "Value:", salaryAmount);
+  console.log("Tax column:", taxColumn, "Value:", taxAmount);
 
   console.log("Salary column:", salaryColumn, "Value:", salaryAmount);
   console.log("Tax column:", taxColumn, "Value:", taxAmount);
