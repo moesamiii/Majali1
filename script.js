@@ -145,7 +145,8 @@ function generateGovernmentForm(employee) {
   }
 
   // Get salary (Column E) and tax (Column F)
-  const salaryColumn = "الراتب والاجور";
+
+  const salaryColumn = "اجمالي الرواتب والأجور";
   const taxColumn = "الضريبة المقتطعة من اجمالي";
 
   const salaryAmount = employee[salaryColumn] || 0;
