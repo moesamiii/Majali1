@@ -72,10 +72,20 @@ function displayEmployee(index) {
   updateNavigation();
 }
 
-function calculateWorkDuration(startDateStr, taxYear) {
-  if (!startDateStr) return "-";
+function calculateWorkDuration(startDateValue, taxYear) {
+  if (!startDateValue) return "-";
 
-  const startDate = new Date(startDateStr);
+  let startDate;
+
+  // 🟢 Excel numeric date (مثل 45231)
+  if (typeof startDateValue === "number") {
+    startDate = new Date((startDateValue - 25569) * 86400 * 1000);
+  }
+  // 🟢 String date
+  else {
+    startDate = new Date(startDateValue);
+  }
+
   if (isNaN(startDate)) return "-";
 
   const endDate = new Date(`${taxYear}-12-31`);
