@@ -90,7 +90,7 @@ function generateGovernmentForm(employee) {
         <div class="government-form" id="currentForm">
             <!-- Header Section -->
             <div class="form-header">
-                <img src="crown_logo.png" alt="شعار المملكة" class="form-logo">
+                <img src="crown.png" alt="شعار المملكة" class="form-logo">
                 <div class="form-title-main">المملكـــة الأردنيــة الهاشميـــة</div>
                 <div class="form-title-secondary">شهادة مجموع الرواتب والأجور والضريبة المقتطعة</div>
                 <div class="form-subtitle">
