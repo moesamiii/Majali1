@@ -109,7 +109,7 @@ function generateGovernmentForm(employee) {
   let endWorkDate = "-";
 
   for (let key in employee) {
-    const cleanKey = key.replace(/\s+/g, "");
+    const cleanKey = key.replace(/[^\u0600-\u06FF]/g, "");
 
     if (
       cleanKey.includes("تاريخانتهاء") ||
