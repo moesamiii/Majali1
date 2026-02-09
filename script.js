@@ -258,11 +258,13 @@ function generateGovernmentForm(employee) {
                 </tr>
                 <tr>
                     <td class="col-label">الرواتب والأجور</td>
-                    <td class="value-cell">${salary.dinar}</td>
                     <td class="value-cell">${salary.fils}</td>
+                    <td class="value-cell">${salary.dinar}</td>
+                    
                     <td class="col-label">الرواتب والأجور</td>
-                    <td class="value-cell">${tax.dinar}</td>
                     <td class="value-cell">${tax.fils}</td>
+                    <td class="value-cell">${tax.dinar}</td>
+                    
                 </tr>
                 <tr>
                     <td class="col-label">الرواتب والأجور غير الشهرية</td>
